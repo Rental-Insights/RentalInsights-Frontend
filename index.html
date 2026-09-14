@@ -5,18 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RentalInsights — Know where to invest before you spend a dollar on a house</title>
   <meta name="description" content="RentalInsights turns Rochester, NY's actual property and rental-turnover data into a plain answer: which zip codes are worth your money, and why." />
+  <meta name="theme-color" content="#f5ead8" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2216%22 fill=%22%23f97316%22/><circle cx=%2250%22 cy=%2244%22 r=%2220%22 fill=%22none%22 stroke=%22%23ffffff%22 stroke-width=%228%22/><line x1=%2264%22 y1=%2258%22 x2=%2280%22 y2=%2274%22 stroke=%22%23ffffff%22 stroke-width=%228%22 stroke-linecap=%22round%22/></svg>" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2250%22 fill=%22%23c67139%22/></svg>" />
 </head>
 <body>
 
   <header class="site-header">
     <div class="wrap header-row">
-      <a class="wordmark" href="#top">RentalInsights</a>
-      <nav class="header-nav">
+      <a class="wordmark" href="#top">
+        <span class="wordmark-dot" aria-hidden="true"></span>
+        RentalInsights
+      </a>
+      <nav class="header-nav" aria-label="Primary">
         <a href="#how-it-works">How it works</a>
         <a href="#rochester">Rochester data</a>
         <a href="#faq">Questions</a>
@@ -28,6 +32,7 @@
   <main id="top">
 
     <section class="hero">
+      <div class="hero-blob" aria-hidden="true"></div>
       <div class="wrap hero-grid">
         <div class="hero-copy">
           <p class="kicker">Rochester, NY &middot; first market live</p>
@@ -39,34 +44,36 @@
           </p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="https://app.rentalinsights.ai/onboarding/">Find your market</a>
-            <a class="btn btn-quiet" href="#how-it-works">See how it works</a>
+            <a class="btn btn-secondary" href="#how-it-works">See how it works</a>
           </div>
           <p class="hero-note">Free to use. No listing fees, no agent required to look.</p>
         </div>
 
         <div class="hero-map">
-          <img src="assets/rochester-zips.svg" alt="Map of Rochester, NY zip codes, with 14607 highlighted" class="map-svg" />
+          <div class="map-panel">
+            <img src="assets/rochester-zips.svg" width="1000" height="1000" alt="Map of Rochester, NY zip codes, with 14607 highlighted" />
+          </div>
           <div class="map-callout">
-            <span class="map-callout-label">Highest rental turnover</span>
+            <span class="map-callout-label eyebrow">Highest rental turnover</span>
             <span class="map-callout-zip">14607</span>
-            <span class="map-callout-stat"><span class="num">65.2%</span> of active rentals have turned over before</span>
+            <span class="map-callout-stat"><span class="stat-strong">65.2%</span> of active rentals have turned over before</span>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="proof">
+    <section class="proof" aria-label="Coverage">
       <div class="wrap proof-row">
         <div class="proof-stat">
-          <span class="num">166,072</span>
+          <span class="proof-num">166,072</span>
           <span class="proof-label">properties analyzed across Rochester</span>
         </div>
         <div class="proof-stat">
-          <span class="num">46</span>
+          <span class="proof-num">46</span>
           <span class="proof-label">zip codes covered, city and suburbs</span>
         </div>
         <div class="proof-stat">
-          <span class="num">23</span>
+          <span class="proof-num">23</span>
           <span class="proof-label">zip codes with enough rental history to trust</span>
         </div>
       </div>
@@ -84,14 +91,14 @@
           </p>
         </div>
         <div class="quotes">
-          <blockquote class="quote">
-            <p>"I had five zip codes I was choosing between and no real way to compare them side by side. Every source told me something different."</p>
-            <cite>&mdash; Ali, prospective investor</cite>
-          </blockquote>
-          <blockquote class="quote">
-            <p>"I didn't want another dashboard with forty metrics. I wanted someone to just tell me which one, and why."</p>
-            <cite>&mdash; Mahrukh, prospective investor</cite>
-          </blockquote>
+          <figure class="quote">
+            <blockquote><p>"I had five zip codes I was choosing between and no real way to compare them side by side. Every source told me something different."</p></blockquote>
+            <figcaption>&mdash; Ali, prospective investor</figcaption>
+          </figure>
+          <figure class="quote">
+            <blockquote><p>"I didn't want another dashboard with forty metrics. I wanted someone to just tell me which one, and why."</p></blockquote>
+            <figcaption>&mdash; Mahrukh, prospective investor</figcaption>
+          </figure>
         </div>
       </div>
     </section>
@@ -106,21 +113,21 @@
 
         <ol class="steps">
           <li class="step">
-            <span class="step-index">1</span>
+            <span class="step-index" aria-hidden="true">1</span>
             <div class="step-body">
               <h3>Tell us your budget and priorities</h3>
               <p>A short guided quiz &mdash; how much you have to invest, and whether you're after cash flow, appreciation, or something you can manage without much hassle.</p>
             </div>
           </li>
           <li class="step">
-            <span class="step-index">2</span>
+            <span class="step-index" aria-hidden="true">2</span>
             <div class="step-body">
               <h3>See the heatmap, ranked to your answers</h3>
               <p>A color-coded map of Rochester built from real turnover and pricing data, with zip codes ranked against what you told us &mdash; not a generic top-ten list.</p>
             </div>
           </li>
           <li class="step">
-            <span class="step-index">3</span>
+            <span class="step-index" aria-hidden="true">3</span>
             <div class="step-body">
               <h3>Run the numbers before you commit</h3>
               <p>Drop a property or a zip code median into the cash-flow calculator and see mortgage, cap rate, and cash-on-cash return before you talk to anyone.</p>
@@ -140,26 +147,26 @@
             why we started with one city instead of fifty.
           </p>
           <ul class="fact-list">
-            <li><span class="num">14607</span> leads the city in repeat rental turnover, a sign of consistent tenant demand.</li>
+            <li>14607 leads the city in repeat rental turnover, a sign of consistent tenant demand.</li>
             <li>Rental and sale velocity is tracked per zip code, so "hot market" means measured, not implied.</li>
             <li>Coverage spans the city core and the greater metro &mdash; Fairport, Pittsford, Webster, Greece, and more.</li>
           </ul>
         </div>
-        <div class="rochester-badge">
-          <p class="badge-eyebrow">Currently live in</p>
+        <aside class="rochester-badge">
+          <p class="eyebrow">Currently live in</p>
           <p class="badge-city">Rochester, NY</p>
           <p class="badge-note">More markets are coming as we validate the model city by city &mdash; not before.</p>
-        </div>
+        </aside>
       </div>
     </section>
 
     <section class="cta-band">
       <div class="wrap cta-row">
-        <div>
+        <div class="cta-copy">
           <h2>Stop guessing which zip code. Start with the data.</h2>
           <p>It takes about two minutes to get your first ranked market.</p>
         </div>
-        <a class="btn btn-primary btn-large" href="https://app.rentalinsights.ai/onboarding/">Find your market</a>
+        <a class="btn" href="https://app.rentalinsights.ai/onboarding/">Find your market</a>
       </div>
     </section>
 
