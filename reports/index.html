@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Out-of-state rental market report — RentalInsights</title>
+<meta name="description" content="A buyer's report for out-of-state rental investors: the neighborhoods that cash-flow, vetted property managers and agents, landlord rules and live deals.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+<!--
+  ============================================================================
+  RentalInsights — paid-report landing page (ad test)
+  ----------------------------------------------------------------------------
+  One file, no build step. Drop it into the landing site (e.g. /reports/) and
+  edit CONFIG below. What it does:
+    • Two market variants:   ?m=memphis  or  ?m=cleveland   (or a path containing the name)
+    • Two price arms (A/B):  visitors are split 50/50 between $49 and $149 and
+                             stay in their arm on return visits. Force one with ?p=49 or ?p=149.
+    • Pay button → your Stripe Payment Link for that market + price, with
+      client_reference_id = market_price_campaign so every payment is attributable.
+    • Waitlist form → POSTs JSON to CONFIG.waitlistEndpoint.
+    • After payment, set the Payment Link's success URL to
+        https://rentalinsights.ai/reports/?paid=1&m={market}&p={price}
+      to show the thank-you screen (and fire the Purchase event).
+    • Meta Pixel + GA4 load only when their IDs are filled in.
+  ============================================================================
+-->
+<script>
+window.CONFIG = {
+  metaPixelId: '',            // e.g. '123456789012345'
+  ga4Id: '',                  // e.g. 'G-XXXXXXX'
+  // Backend: report-preorders branch of the RentalInsights app (apps/reports/views_landing.py)
+  eventEndpoint: 'https://app.rentalinsights.ai/api/landing/event/',       // every funnel event (sendBeacon)
+  waitlistEndpoint: 'https://app.rentalinsights.ai/api/landing/waitlist/', // POST {email, interest, market, arm, utm...}
+  surveyEndpoint: 'https://app.rentalinsights.ai/api/landing/survey/',     // POST the post-purchase answers
+  contactEmail: 'hello@rentalinsights.ai',
+  deliveryBusinessDays: 5,
+  foundingLimit: 50,          // shown as "founding price for the first N pre-orders" — set to 0 to hide
+  prices: [49, 149],          // the two A/B arms
+  // Stripe Payment Links, one per market and price arm
+  paymentLinks: {
+    memphis:   { 49: '', 149: '' },
+    cleveland: { 49: '', 149: '' }
+  },
+  // Numbers you pull for each market. Leave null to hide that stat.
+  markets: {
+    memphis: {
+      name: 'Memphis', state: 'TN', full: 'Memphis, TN',
+      headline: 'Memphis rentals that still pay for themselves — picked for investors who live far away.',
+      sub: 'One report with the neighborhoods that cash-flow at today’s rates, the property managers and agents who actually work with out-of-state owners, and the deals worth looking at this month.',
+      why: [
+        'Californians are the largest group of out-of-state buyers here — about 29% of out-of-state purchases (SFR Analytics, Q1 2026).',
+        'Tennessee has no state income tax on wages.',
+        'Prices are a fraction of coastal markets, so rent can cover the mortgage.'
+      ],
+      stats: { medianPrice: null, medianRent: null, neighborhoods: null, managersScreened: null }
+    },
+    cleveland: {
+      name: 'Cleveland', state: 'OH', full: 'Cleveland, OH',
+      headline: 'Cleveland rentals that still cash-flow — vetted for owners who live out of state.',
+      sub: 'One report with the neighborhoods where the numbers work at today’s rates, the property managers and agents who work with remote owners, and the deals worth looking at this month.',
+      why: [
+        'About 21% of out-of-state purchases in Cleveland come from California buyers (SFR Analytics, Q1 2026).',
+        'Home prices are far below coastal markets, so rent can cover the mortgage.',
+        'Neighborhoods change block by block — the report shows which blocks keep tenants.'
+      ],
+      stats: { medianPrice: null, medianRent: null, neighborhoods: null, managersScreened: null }
+    }
+  }
+};
+</script>
+<style>
+  :root {
+    --bg: #F6F5F1; --surface: #FFFFFF; --ink: #16191C; --muted: #5B6168; --line: #E4E2DC;
+    --accent: #1E5E4A; --accent-ink: #FFFFFF; --accent-soft: #E6F0EB; --warm: #FBF1E1; --warm-ink: #7A4300;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, system-ui, -apple-system, sans-serif; font-size: 16px; line-height: 1.55; }
+  a { color: var(--accent); }
+  h1, h2, h3 { font-family: 'Space Grotesk', Inter, sans-serif; letter-spacing: -0.02em; line-height: 1.1; margin: 0; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 18px; color: var(--ink); text-decoration: none; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 14px 22px; border-radius: 12px; border: 0; font: inherit; font-weight: 600; font-size: 16px; cursor: pointer; text-decoration: none; }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); }
+  .btn-primary:hover { background: #174C3C; }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  .btn-small { min-height: 40px; padding: 10px 16px; font-size: 14px; }
+  .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 6px 12px; border-radius: 999px; }
+  .hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; padding: 40px 0 72px; }
+  .hero h1 { font-size: clamp(34px, 5vw, 56px); margin: 18px 0; }
+  .hero p.sub { font-size: 19px; color: var(--muted); margin: 0 0 26px; max-width: 560px; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .fine { font-size: 14px; color: var(--muted); margin-top: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+  .preview h3 { font-size: 18px; }
+  .preview table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }
+  .preview th { text-align: left; color: var(--muted); font-weight: 500; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+  .preview td { padding: 10px 6px; border-bottom: 1px solid #F0EEE9; }
+  .blur { filter: blur(5px); user-select: none; }
+  .tag { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; padding: 24px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .stat b { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 26px; }
+  .stat span { font-size: 14px; color: var(--muted); }
+  section { padding: 64px 0; }
+  section > h2 { font-size: clamp(28px, 3.6vw, 40px); max-width: 720px; margin-bottom: 28px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .num { font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: var(--accent); }
+  .card h3 { font-size: 20px; margin: 8px 0; }
+  .card p { margin: 0; color: var(--muted); }
+  ul.checks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; }
+  ul.checks li { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  ul.checks svg { flex: none; margin-top: 3px; }
+  .dark { background: var(--ink); color: #fff; border-radius: 24px; padding: 40px; }
+  .dark p, .dark li { color: #C9CFCC; }
+  .price-card { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; }
+  .price { font-family: 'Space Grotesk', sans-serif; font-size: 56px; font-weight: 600; line-height: 1; }
+  .price small { font-size: 18px; color: #B9C2BE; font-weight: 500; }
+  details { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 0 20px; margin-bottom: 10px; }
+  summary { cursor: pointer; font-weight: 600; padding: 18px 0; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  details p { margin: 0 0 18px; color: var(--muted); }
+  form.inline { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  input[type=email], input[type=text], select, textarea { font: inherit; font-size: 16px; padding: 13px 14px; border-radius: 12px; border: 1px solid #D6D3CB; background: #fff; min-height: 48px; }
+  form.inline input[type=email] { flex: 1 1 240px; }
+  label.lbl { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+  .msg { margin-top: 10px; font-size: 14px; }
+  .msg.ok { color: var(--accent); } .msg.err { color: #A3341F; }
+  footer { padding: 32px 0 120px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+  .sticky { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: rgba(255,255,255,0.96); border-top: 1px solid var(--line); display: none; align-items: center; justify-content: space-between; gap: 12px; z-index: 10; }
+  .sticky .btn { flex: 1; }
+  .sticky .p { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 20px; }
+  .founder { display: flex; gap: 20px; align-items: flex-start; }
+  .avatar { width: 64px; height: 64px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 24px; flex: none; }
+  .hidden { display: none !important; }
+  @media (max-width: 860px) {
+    .hero, .grid3, .grid2, .price-card { grid-template-columns: 1fr; }
+    ul.checks { grid-template-columns: 1fr; }
+    .hero { padding: 16px 0 48px; gap: 28px; }
+    section { padding: 44px 0; }
+    .dark { padding: 28px 22px; }
+    .sticky { display: flex; }
+    .top .btn { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="7" fill="#1E5E4A"/><path d="M8 19V12l6-4 6 4v7" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M12 19v-4h4v4" fill="none" stroke="#fff" stroke-width="2"/></svg>
+      RentalInsights
+    </a>
+    <button class="btn btn-primary btn-small" data-buy>Pre-order the report</button>
+  </header>
+</div>
+
+<!-- ===================== SALES PAGE ===================== -->
+<main id="sales">
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <span class="eyebrow">For rental investors in California and New York</span>
+        <h1 id="headline">Rentals that still pay for themselves — picked for investors who live far away.</h1>
+        <p class="sub" id="sub"></p>
+        <div class="cta-row">
+          <button class="btn btn-primary" data-buy><span>Pre-order the <span data-city>Memphis</span> report — $<span data-price>49</span></span></button>
+          <a class="btn btn-ghost" href="#waitlist" data-track="waitlist_click">Not ready? Join the waitlist</a>
+        </div>
+        <p class="fine">Pre-order · delivered by <b data-delivery></b> · full refund if it doesn't help you, no questions asked.</p>
+      </div>
+      <div class="card preview" aria-label="Report preview">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <h3>Top neighborhoods · <span data-city>Memphis</span></h3>
+          <span class="tag">Preview</span>
+        </div>
+        <table>
+          <thead><tr><th>Neighborhood</th><th>Typical price</th><th>Cash flow / mo</th><th>Tenants</th></tr></thead>
+          <tbody>
+            <tr><td class="blur">Hollow Pines</td><td class="blur">$148,000</td><td class="blur">+$212</td><td><span class="tag">Stay long</span></td></tr>
+            <tr><td class="blur">Cedar Bluffs</td><td class="blur">$131,000</td><td class="blur">+$188</td><td><span class="tag">Stay long</span></td></tr>
+            <tr><td class="blur">River Oaks W</td><td class="blur">$162,000</td><td class="blur">+$141</td><td><span class="tag" style="background:#FBF1E1;color:#7A4300">Turnover</span></td></tr>
+            <tr><td class="blur">Maple Ridge</td><td class="blur">$119,000</td><td class="blur">+$96</td><td><span class="tag">Stay long</span></td></tr>
+          </tbody>
+        </table>
+        <p class="fine" style="margin-top:12px">Blurred placeholders. The report has the real neighborhood names, numbers and sources.</p>
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <section>
+      <h2>Buying a rental from 2,000 miles away usually goes wrong in one of three ways.</h2>
+      <div class="grid3">
+        <div class="card"><span class="num">01</span><h3>The wrong block</h3><p>Two streets apart can mean tenants who stay five years or tenants who leave every year. Listing sites don't show you which.</p></div>
+        <div class="card"><span class="num">02</span><h3>Numbers that don't hold</h3><p>Asking rents, skipped repairs and a guessed tax bill make a losing deal look like a winner — until month three.</p></div>
+        <div class="card"><span class="num">03</span><h3>A manager who disappears</h3><p>Most reviews come from tenants. Owners need to know about fees, response time and how vacancies get filled.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>What's in the <span data-city>Memphis</span> report</h2>
+      <ul class="checks">
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E5E4A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span><b>The neighborhoods that cash-flow</b> at today's rates, ranked — and why, with sources.</span></li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E5E4A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span><b>Where tenants stay</b> — every rental address sorted by how fast it re-lets and how long tenants stay.</span></li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E5E4A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span><b>3 vetted property managers</b> with real fees side by side and owner (not tenant) reviews.</span></li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E5E4A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span><b>3 investor agents</b> who have closed rental deals and do video walkthroughs.</span></li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E5E4A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span><b>Real holding costs</b> — property tax, insurance and flood risk by area.</span></li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E5E4A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span><b>Landlord rules</b> — evictions, registration and inspections, in plain English.</span></li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E5E4A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span><b>10 live listings</b> that clear $100+/month after every cost, with the full math.</span></li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1E5E4A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg><span><b>A stress test</b> — which deals still work if rent drops, a roof comes due or rates rise.</span></li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Why <span data-city>Memphis</span>?</h2>
+      <div class="grid3" id="why"></div>
+    </section>
+
+    <section id="buy">
+      <div class="dark price-card">
+        <div>
+          <h2 style="font-size:clamp(26px,3.4vw,36px);margin-bottom:12px">The <span data-city>Memphis</span> rental report</h2>
+          <p style="margin:0 0 12px">PDF + spreadsheet. Delivered by <b data-delivery style="color:#fff"></b>.</p>
+          <p style="margin:0" id="founding"></p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;align-items:stretch;min-width:240px">
+          <div class="price">$<span data-price>49</span> <small>one time</small></div>
+          <button class="btn" style="background:#fff;color:var(--ink)" data-buy>Pre-order now</button>
+          <span style="font-size:13px;color:#B9C2BE">Secure checkout by Stripe · full refund if it doesn't help</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="card founder">
+        <div class="avatar" aria-hidden="true">J</div>
+        <div>
+          <h3 style="font-size:20px;margin:0 0 6px">Who's behind this</h3>
+          <p style="margin:0;color:var(--muted)">I'm Jahon, a software engineer in the Bay Area. I own a rental 2,700 miles away in Rochester, NY, run by a property manager I've never met in person. RentalInsights is the research I wish I'd had before buying: real rent data, how long tenants actually stay, and which managers answer the phone.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Questions</h2>
+      <details><summary>When do I get the report?</summary><p>This is a pre-order. Your report is delivered by email by <b data-delivery></b>. If we miss that date, you get a full refund automatically.</p></details>
+      <details><summary>What if it doesn't help?</summary><p>Reply to the delivery email within 30 days and we'll refund you in full. No questions.</p></details>
+      <details><summary>Do managers or agents pay to be listed?</summary><p>No. Nobody can pay to appear or to raise their ranking. If we ever earn a referral fee from a partner, we'll say so next to their name.</p></details>
+      <details><summary>Is this financial advice?</summary><p>No. It's research and data to help you decide. Always confirm with your own inspector, attorney and lender before you buy.</p></details>
+      <details><summary>What other cities are coming?</summary><p>Rochester, NY is next, then the markets our waitlist asks for most. Tell us yours below.</p></details>
+    </section>
+
+    <section id="waitlist">
+      <div class="card">
+        <h2 style="font-size:clamp(24px,3vw,32px);margin-bottom:8px">Not ready to buy yet?</h2>
+        <p style="margin:0">Join the waitlist. We'll send one email when a new market report is out — nothing else.</p>
+        <form class="inline" id="waitlist-form" novalidate>
+          <label class="hidden" for="wl-email">Email</label>
+          <input id="wl-email" type="email" name="email" autocomplete="email" placeholder="you@example.com" required>
+          <label class="hidden" for="wl-market">Market you're interested in</label>
+          <select id="wl-market" name="interest">
+            <option value="memphis">Memphis, TN</option>
+            <option value="cleveland">Cleveland, OH</option>
+            <option value="rochester">Rochester, NY</option>
+            <option value="other">Somewhere else</option>
+          </select>
+          <button class="btn btn-primary" type="submit">Join the waitlist</button>
+        </form>
+        <p class="msg" id="wl-msg" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ===================== THANK-YOU (after Stripe) ===================== -->
+<main id="thanks" class="hidden">
+  <div class="wrap" style="max-width:720px;padding-top:40px;padding-bottom:80px">
+    <span class="eyebrow">Pre-order confirmed</span>
+    <h1 style="font-size:clamp(32px,5vw,48px);margin:18px 0 12px">Thank you — your <span data-city>Memphis</span> report is on its way.</h1>
+    <p style="font-size:18px;color:var(--muted);margin:0 0 28px">It arrives by email by <b data-delivery></b>. Three quick questions so we can tailor it to you:</p>
+    <form class="card" id="survey-form" style="display:flex;flex-direction:column;gap:18px">
+      <div><label class="lbl" for="s-budget">How much cash could you put into a rental?</label>
+        <select id="s-budget" name="budget" style="width:100%"><option value="">Choose one</option><option>Under $35k</option><option>$35k–$70k</option><option>$70k–$150k</option><option>More than $150k</option></select></div>
+      <div><label class="lbl" for="s-when">When are you hoping to buy?</label>
+        <select id="s-when" name="timeline" style="width:100%"><option value="">Choose one</option><option>In the next 3 months</option><option>3–12 months</option><option>Just researching</option></select></div>
+      <div><label class="lbl" for="s-own">How many rentals do you own today?</label>
+        <select id="s-own" name="owned" style="width:100%"><option value="">Choose one</option><option>None yet</option><option>1–2</option><option>3–10</option><option>More than 10</option></select></div>
+      <div><label class="lbl" for="s-note">Anything specific you want the report to answer? (optional)</label>
+        <textarea id="s-note" name="note" rows="3" style="width:100%"></textarea></div>
+      <label style="display:flex;gap:10px;align-items:flex-start;font-size:15px"><input type="checkbox" name="call_ok" style="width:18px;height:18px;margin-top:3px"> I'm open to a 15-minute call about what I'm looking for.</label>
+      <button class="btn btn-primary" type="submit">Send</button>
+      <p class="msg" id="s-msg" role="status" aria-live="polite"></p>
+    </form>
+  </div>
+</main>
+
+<div class="wrap">
+  <footer>
+    © RentalInsights · <a href="#" id="contact-link">Contact</a> · We never sell your email. Research only, not financial advice.
+  </footer>
+</div>
+
+<div class="sticky" id="sticky">
+  <span class="p">$<span data-price>49</span></span>
+  <button class="btn btn-primary" data-buy><span>Pre-order the <span data-city>Memphis</span> report</span></button>
+</div>
+
+<script>
+(function () {
+  var C = window.CONFIG;
+  var q = new URLSearchParams(location.search);
+
+  // ---------- storage helpers (never fail) ----------
+  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  // ---------- variant: market ----------
+  var market = (q.get('m') || '').toLowerCase();
+  if (!C.markets[market]) {
+    var path = location.pathname.toLowerCase();
+    market = Object.keys(C.markets).filter(function (k) { return path.indexOf(k) !== -1; })[0] || 'memphis';
+  }
+  var M = C.markets[market];
+
+  // ---------- variant: price arm (sticky per visitor) ----------
+  var forced = parseInt(q.get('p'), 10);
+  var price = C.prices.indexOf(forced) !== -1 ? forced : parseInt(get('ri_price_arm'), 10);
+  if (C.prices.indexOf(price) === -1) price = C.prices[Math.random() < 0.5 ? 0 : 1];
+  set('ri_price_arm', String(price));
+
+  // ---------- attribution ----------
+  var utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+  var utm = {};
+  utmKeys.forEach(function (k) { var v = q.get(k) || get('ri_' + k); if (v) { utm[k] = v; set('ri_' + k, v); } });
+  var visitor = get('ri_vid') || ('v' + Math.random().toString(36).slice(2, 10));
+  set('ri_vid', visitor);
+
+  // ---------- tracking ----------
+  if (C.metaPixelId) {
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', C.metaPixelId); fbq('track', 'PageView');
+  }
+  if (C.ga4Id) {
+    var g = document.createElement('script'); g.async = true; g.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(C.ga4Id); document.head.appendChild(g);
+    window.dataLayer = window.dataLayer || []; window.gtag = function () { dataLayer.push(arguments); };
+    gtag('js', new Date()); gtag('config', C.ga4Id);
+  }
+  var META = { view: 'ViewContent', lead: 'Lead', checkout: 'InitiateCheckout', purchase: 'Purchase' };
+  var GA = { view: 'view_item', lead: 'generate_lead', checkout: 'begin_checkout', purchase: 'purchase' };
+  function track(name, extra) {
+    var p = Object.assign({ market: market, price_arm: price, value: price, currency: 'USD', visitor: visitor }, utm, extra || {});
+    try { if (window.fbq && META[name]) fbq('track', META[name], { value: p.value, currency: 'USD', content_name: market + '_report', content_category: 'price_' + price }); } catch (e) {}
+    try { if (window.gtag) gtag('event', GA[name] || name, p); } catch (e) {}
+    try { if (C.eventEndpoint && navigator.sendBeacon) navigator.sendBeacon(C.eventEndpoint, new Blob([JSON.stringify(Object.assign({ event: name, ts: Date.now(), path: location.pathname }, p))], { type: 'text/plain;charset=UTF-8' })); } catch (e) {}
+  }
+
+  // ---------- fill content ----------
+  function each(sel, fn) { Array.prototype.forEach.call(document.querySelectorAll(sel), fn); }
+  function addBusinessDays(d, n) { var x = new Date(d); while (n > 0) { x.setDate(x.getDate() + 1); var w = x.getDay(); if (w !== 0 && w !== 6) n--; } return x; }
+  var delivery = addBusinessDays(new Date(), C.deliveryBusinessDays).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  each('[data-city]', function (el) { el.textContent = M.name; });
+  each('[data-price]', function (el) { el.textContent = String(price); });
+  each('[data-delivery]', function (el) { el.textContent = delivery; });
+  document.getElementById('headline').textContent = M.headline;
+  document.getElementById('sub').textContent = M.sub;
+  document.title = M.full + ' rental market report for out-of-state investors — RentalInsights';
+  document.getElementById('wl-market').value = market;
+  var contact = document.getElementById('contact-link'); contact.href = 'mailto:' + C.contactEmail;
+  var founding = document.getElementById('founding');
+  if (C.foundingLimit) founding.textContent = 'Founding price for the first ' + C.foundingLimit + ' pre-orders. Later reports will cost more.'; else founding.remove();
+
+  var why = document.getElementById('why');
+  M.why.forEach(function (t) { var d = document.createElement('div'); d.className = 'card'; var p = document.createElement('p'); p.style.color = 'var(--ink)'; p.textContent = t; d.appendChild(p); why.appendChild(d); });
+
+  var S = M.stats, statsEl = document.getElementById('stats'), statDefs = [
+    ['medianPrice', 'Typical rental-home price', function (v) { return '$' + Number(v).toLocaleString('en-US'); }],
+    ['medianRent', 'Typical monthly rent', function (v) { return '$' + Number(v).toLocaleString('en-US'); }],
+    ['neighborhoods', 'Neighborhoods analyzed', String],
+    ['managersScreened', 'Property managers screened', String]
+  ], shown = 0;
+  statDefs.forEach(function (d) {
+    if (S[d[0]] == null) return; shown++;
+    var div = document.createElement('div'); div.className = 'stat';
+    var b = document.createElement('b'); b.textContent = d[2](S[d[0]]);
+    var s = document.createElement('span'); s.textContent = d[1];
+    div.appendChild(b); div.appendChild(s); statsEl.appendChild(div);
+  });
+  if (!shown) statsEl.remove();
+
+  // ---------- buy ----------
+  // No underscores: the backend splits client_reference_id on "_" (market_price_campaign_content_visitor).
+  function sanitize(s) { return String(s).replace(/[^A-Za-z0-9-]/g, '').slice(0, 60); }
+  each('[data-buy]', function (btn) {
+    btn.addEventListener('click', function () {
+      track('checkout');
+      var link = (C.paymentLinks[market] || {})[price];
+      if (!link) { alertBox('Checkout isn’t connected yet — add the Stripe Payment Link for ' + market + ' at $' + price + ' in CONFIG.'); return; }
+      var ref = [market, price, sanitize(utm.utm_campaign || 'direct'), sanitize(utm.utm_content || 'none'), visitor].join('_').slice(0, 200);
+      var url = link + (link.indexOf('?') === -1 ? '?' : '&') + 'client_reference_id=' + encodeURIComponent(ref);
+      location.href = url;
+    });
+  });
+  function alertBox(text) {
+    var m = document.getElementById('wl-msg');
+    m.className = 'msg err'; m.textContent = text;
+    document.getElementById('waitlist').scrollIntoView({ behavior: 'smooth' });
+  }
+  each('[data-track]', function (a) { a.addEventListener('click', function () { track(a.getAttribute('data-track')); }); });
+
+  // ---------- forms ----------
+  function post(url, body) {
+    return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(body) })
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); });
+  }
+  document.getElementById('waitlist-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = document.getElementById('wl-email').value.trim();
+    var msg = document.getElementById('wl-msg');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className = 'msg err'; msg.textContent = 'Please enter a valid email.'; return; }
+    var body = Object.assign({ email: email, interest: document.getElementById('wl-market').value, market: market, price_arm: price, visitor: visitor }, utm);
+    if (!C.waitlistEndpoint) { msg.className = 'msg err'; msg.textContent = 'Waitlist isn’t connected yet — set waitlistEndpoint in CONFIG.'; return; }
+    post(C.waitlistEndpoint, body).then(function () {
+      track('lead', { value: 0 });
+      msg.className = 'msg ok'; msg.textContent = 'You’re on the list. One email when the next report is out.';
+      e.target.reset();
+    }).catch(function () { msg.className = 'msg err'; msg.textContent = 'Something went wrong. Please try again or email ' + C.contactEmail + '.'; });
+  });
+
+  // ---------- thank-you mode ----------
+  if (q.get('paid') === '1') {
+    document.getElementById('sales').classList.add('hidden');
+    document.getElementById('sticky').classList.add('hidden');
+    document.getElementById('thanks').classList.remove('hidden');
+    if (!get('ri_purchased_' + market)) { track('purchase'); set('ri_purchased_' + market, '1'); }
+    document.getElementById('survey-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var f = e.target, msg = document.getElementById('s-msg');
+      var body = Object.assign({ market: market, price_arm: price, visitor: visitor, budget: f.budget.value, timeline: f.timeline.value, owned: f.owned.value, note: f.note.value, call_ok: f.call_ok.checked }, utm);
+      if (!C.surveyEndpoint) { msg.className = 'msg err'; msg.textContent = 'Survey isn’t connected yet — set surveyEndpoint in CONFIG.'; return; }
+      post(C.surveyEndpoint, body).then(function () { msg.className = 'msg ok'; msg.textContent = 'Thanks — this helps us make your report sharper.'; f.querySelector('button').disabled = true; })
+        .catch(function () { msg.className = 'msg err'; msg.textContent = 'Couldn’t send. Please reply to your receipt email instead.'; });
+    });
+  } else {
+    track('view');
+  }
+})();
+</script>
+</body>
+</html>
