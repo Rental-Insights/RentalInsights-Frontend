@@ -405,10 +405,17 @@ window.CONFIG = {
       location.href = url;
     });
   });
+  // Shown in place (a toast) -- never jump the visitor away from the button they pressed.
   function alertBox(text) {
-    var m = document.getElementById('wl-msg');
-    m.className = 'msg err'; m.textContent = text;
-    document.getElementById('waitlist').scrollIntoView({ behavior: 'smooth' });
+    var t = document.getElementById('ri-toast');
+    if (!t) {
+      t = document.createElement('div'); t.id = 'ri-toast'; t.setAttribute('role', 'alert');
+      t.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);max-width:min(520px,calc(100% - 32px));background:#16191C;color:#fff;padding:14px 18px;border-radius:12px;font-size:15px;line-height:1.45;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:20';
+      document.body.appendChild(t);
+    }
+    t.textContent = text; t.style.display = 'block';
+    clearTimeout(alertBox.timer);
+    alertBox.timer = setTimeout(function () { t.style.display = 'none'; }, 6000);
   }
   each('[data-track]', function (a) { a.addEventListener('click', function () { track(a.getAttribute('data-track')); }); });
 
